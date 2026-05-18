@@ -1,0 +1,50 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# Windows
+Thumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.Trash-*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.settings/
+.vs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+.env
+.pytest_cache/
+.coverage
+
+# Project
+data.json
+*.data.json
+
+# Archive
+*.zip
+*.tar.gz
+
+# Logs
+*.log
