@@ -2,92 +2,92 @@
 
 ## @PROGRESS
 
-- [x] Phase 1: Blueprint Design
-- [x] Phase 2: Code Filling
-- [x] Phase 3: Validation Complete
-- Progress: 6/6 modules completed
+- [x] Phase 1: 蓝图设计
+- [x] Phase 2: 代码填充
+- [x] Phase 3: 验证完成
+- 进度: 6/6 模块已完成
 
 ## @MODULE
 
 ### storage (L1)
-- Responsibility: Data persistence (JSON file I/O)
-- Interfaces:
+- 职责: 数据持久化（JSON 文件读写）
+- 接口:
   - `loadData(filepath) -> dict`
   - `saveData(filepath, data) -> None`
-- Dependencies: None
-- Status: [done]
+- 依赖: 无
+- 状态: [done]
 
 ### categories (L2)
-- Responsibility: Income/expense category management
-- Interfaces:
+- 职责: 收支分类管理
+- 接口:
   - `addCategory(name, type_) -> Category`
   - `listCategories(type_=None) -> list[Category]`
   - `getCategoryById(cat_id) -> Category | None`
-- Dependencies:
+- 依赖:
   - `from storage import loadData, saveData`
-- Status: [done]
+- 状态: [done]
 
 ### transactions (L3)
-- Responsibility: Transaction record management
-- Interfaces:
+- 职责: 交易记录管理
+- 接口:
   - `addTransaction(amount, category_id, date, note, type_) -> Transaction`
   - `listTransactions(filters=None) -> list[Transaction]`
   - `deleteTransaction(tx_id) -> bool`
   - `getTransactionsByCategory(cat_id) -> list[Transaction]`
-- Dependencies:
+- 依赖:
   - `from storage import loadData, saveData`
   - `from categories import getCategoryById`
-- Status: [done]
+- 状态: [done]
 
 ### budgets (L4)
-- Responsibility: Budget setting and checking
-- Interfaces:
+- 职责: 预算设置与检查
+- 接口:
   - `setBudget(category_id, month, limit_amount) -> Budget`
   - `checkBudget(category_id, month) -> BudgetStatus`
-- Dependencies:
+- 依赖:
   - `from storage import loadData, saveData`
   - `from categories import getCategoryById`
   - `from transactions import getTransactionsByCategory`
-- Status: [done]
+- 状态: [done]
 
 ### reports (L5)
-- Responsibility: Report generation
-- Interfaces:
+- 职责: 报表生成
+- 接口:
   - `monthlyReport(month) -> MonthlyReport`
   - `budgetOverview(month) -> list[BudgetOverviewItem]`
-- Dependencies:
+- 依赖:
   - `from transactions import listTransactions`
   - `from budgets import checkBudget`
   - `from categories import getCategoryById, listCategories`
-- Status: [done]
+- 状态: [done]
 
 ### cli (L6)
-- Responsibility: Command-line interface
-- Interfaces:
-  - `main()` — Entry function
-- Dependencies:
+- 职责: 命令行界面
+- 接口:
+  - `main()` — 入口函数
+- 依赖:
   - `from categories import addCategory, listCategories`
   - `from transactions import addTransaction, listTransactions, deleteTransaction`
   - `from budgets import setBudget, checkBudget`
   - `from reports import monthlyReport, budgetOverview`
-- Status: [done]
+- 状态: [done]
 
 ## @DATA
 
 ### Category
 ```yaml
-id: int          # Unique identifier, auto-increment
-name: string     # Category name
+id: int          # 唯一标识，自增
+name: string     # 分类名称
 type: string    # "income" | "expense"
 ```
 
 ### Transaction
 ```yaml
 id: int
-amount: float    # Amount
-category_id: int # Associated category ID
+amount: float    # 金额
+category_id: int # 关联分类 ID
 date: string    # YYYY-MM-DD
-note: string    # Note
+note: string    # 备注
 type: string    # "income" | "expense"
 ```
 
@@ -109,57 +109,57 @@ percentage: float
 
 ## @FLOW
 
-### F1: Add Category
+### F1: 添加分类
 ```
-User → cli → addCategory() → categories → storage
-```
-
-### F2: List Categories
-```
-User → cli → listCategories() → categories → storage
+用户 → cli → addCategory() → categories → storage
 ```
 
-### F3: Add Transaction
+### F2: 列出分类
 ```
-User → cli → addTransaction() → transactions → getCategoryById() → categories
+用户 → cli → listCategories() → categories → storage
+```
+
+### F3: 添加交易
+```
+用户 → cli → addTransaction() → transactions → getCategoryById() → categories
                            ↓
                         storage
 ```
 
-### F4: List Transactions
+### F4: 列出交易
 ```
-User → cli → listTransactions() → transactions → storage
-```
-
-### F5: Delete Transaction
-```
-User → cli → deleteTransaction() → transactions → storage
+用户 → cli → listTransactions() → transactions → storage
 ```
 
-### F6: Set Budget
+### F5: 删除交易
 ```
-User → cli → setBudget() → budgets → getCategoryById() → categories
+用户 → cli → deleteTransaction() → transactions → storage
+```
+
+### F6: 设置预算
+```
+用户 → cli → setBudget() → budgets → getCategoryById() → categories
                         ↓
                      storage
 ```
 
-### F7: Check Budget
+### F7: 检查预算
 ```
-User → cli → checkBudget() → budgets → getCategoryById() → categories
+用户 → cli → checkBudget() → budgets → getCategoryById() → categories
                           ↓
                        getTransactionsByCategory() → transactions → storage
 ```
 
-### F8: Monthly Report
+### F8: 月度报表
 ```
-User → cli → monthlyReport() → reports → listTransactions() → transactions → storage
+用户 → cli → monthlyReport() → reports → listTransactions() → transactions → storage
                             ↓
                          getCategoryById() → categories → storage
 ```
 
-### F9: Budget Overview
+### F9: 预算概览
 ```
-User → cli → budgetOverview() → reports → listCategories() → categories → storage
+用户 → cli → budgetOverview() → reports → listCategories() → categories → storage
                             ↓
                          checkBudget() → budgets → getCategoryById() → categories
                                       ↓
@@ -177,30 +177,30 @@ User → cli → budgetOverview() → reports → listCategories() → categorie
 
 ## @CROSSCUT
 
-- Output encoding: UTF-8
-- Encoding adaptation: Windows PowerShell 5 uses full-width currency symbol
-- Platform detection: Run `chcp 65001` when `sys.platform == "win32"`
-- Data file: Default `data.json`, configurable via `BOOKKEEPING_DATA` env var
+- 输出编码: UTF-8
+- 编码适配: Windows PowerShell 5 使用全角货币符号 ￥
+- 平台检测: `sys.platform == "win32"` 时执行 `chcp 65001`
+- 数据文件: 默认 `data.json`，可通过 `BOOKKEEPING_DATA` 环境变量配置
 
 ## @ERROR_CHAIN
 
-### EC1: Category Not Found
+### EC1: 分类不存在
 ```
-Source: transactions.addTransaction(category_id=non-existent ID)
-Propagation: categories.getCategoryById() returns None
-Termination: ValueError("Category ID {id} not found")
+源头: transactions.addTransaction(category_id=不存在的ID)
+传播: categories.getCategoryById() 返回 None
+终点: ValueError("分类 ID {id} 不存在")
 ```
 
-### EC2: Budget Not Set
+### EC2: 预算未设置
 ```
-Source: budgets.checkBudget() queries non-existent budget
-Propagation: iterating budgets list finds no match
-Termination: ValueError("Category {id} has no budget for {month}")
+源头: budgets.checkBudget() 查询不存在的预算
+传播: 遍历 budgets 列表未找到匹配项
+终点: ValueError("分类 {id} 在 {month} 没有设置预算")
 ```
 
 ## @CHANGE
 
-- @CHANGE_001: Initial blueprint design (2026-05-18)
-- @CHANGE_002: Added transactions dependency on categories (2026-05-18)
-- @CHANGE_003: Added budgets dependency on transactions (2026-05-18)
-- @CHANGE_004: Added reports dependency on budgets/categories/transactions (2026-05-18)
+- @CHANGE_001: 初始蓝图设计 (2026-05-18)
+- @CHANGE_002: 补充 transactions 依赖 categories (2026-05-18)
+- @CHANGE_003: 补充 budgets 依赖 transactions (2026-05-18)
+- @CHANGE_004: 补充 reports 依赖 budgets/categories/transactions (2026-05-18)

@@ -1,80 +1,80 @@
-# 实战经验与最佳实践
+# Practical Experience & Best Practices
 
-> 加载条件：需要参考实战经验时，或首次使用前
+> Load condition: when needing to reference practical experience, or before first use
 
-## 常见陷阱
+## Common Pitfalls
 
-### 陷阱 1：Phase 1 依赖遗漏
+### Pitfall 1: Phase 1 Dependency Omission
 
-**现象**：Phase 2 填充时发现需要调用另一个模块的接口，但蓝图未标注。
+**Phenomenon**: Phase 2 fill discovers need to call another module's interface, but not annotated in blueprint.
 
-**根因**：Phase 1 只考虑了"主数据流"的依赖，忽略了"辅助查询"依赖。
+**Root cause**: Phase 1 only considered "main data flow" dependencies, ignored "auxiliary query" dependencies.
 
-**预防**：
+**Prevention**:
 ```
-依赖标注时对各模块问两个问题：
-1. 核心逻辑依赖哪些模块？（主数据流）
-2. 输出需要引用哪些模块的数据翻译 ID 为名称？（辅助查询）
-```
-
-### 陷阱 2：层号直觉误判
-
-**现象**：直觉认为两个模块"差不多"同层，但实际不同。如 reports 依赖 transactions(3层) 和 budgets(4层)，按公式 reports=5 而非 4。
-
-**预防**：列出每个模块的所有直接依赖及其层号，再计算 max+1。
-
-### 陷阱 3：Windows 编码崩溃
-
-**现象**：包含 ¥ 等半角符号的输出在 Windows PowerShell 5 上报错。
-
-**预防**：使用 ￥（全角）替代 ¥（半角），或使用 ASCII 文本。
-
-### 陷阱 4：接口级与依赖级异常混淆
-
-**现象**：发现"缺少依赖"时执行了级联回退，导致已完成的下游模块被重置。
-
-**判断方法**：问"这个变更是否改变了本模块对外暴露的接口签名？"
-
-## 最佳实践
-
-### 依赖标注使用 import 路径格式
-
-```
-好：依赖: - from storage import loadData, saveData
-差：依赖: storage
+When annotating dependencies, ask two questions for each module:
+1. What modules does the core logic depend on? (main data flow)
+2. What modules' data are needed to translate IDs to names for output? (auxiliary query)
 ```
 
-import 路径让 Phase 2 填充时无需回看依赖模块源码。
+### Pitfall 2: Layer Number Intuitive Misjudgment
 
-### CHECKPOINT.md 轻量追踪
+**Phenomenon**: Intuitively think two modules "roughly" same layer, but actually different. Like reports depends on transactions(L3) and budgets(L4), so reports=5 by formula, not 4.
 
-模块完成时只更新 CHECKPOINT.md，同层全部完成后再批量更新 BLUEPRINT.md。
+**Prevention**: List each module's all direct dependencies and their layer numbers, then calculate max+1.
 
-### Phase 1 完成后再选择模式
+### Pitfall 3: Windows Encoding Crash
 
-预估接口数通常不准确。Phase 1 画完蓝图后才能看到确切数字，再决定简化/完整模式。
+**Phenomenon**: Output containing ¥ and other half-width symbols crashes on Windows PowerShell 5.
 
-### 运行时验证渐进策略
+**Prevention**: Use ￥ (full-width) instead of ¥ (half-width), or use ASCII text.
 
-先测最底层的 FLOW → 再测跨层 FLOW → 最后测最复杂的 FLOW。
+### Pitfall 4: Interface-level vs Dependency-level Exception Confusion
 
-## 创新模式
+**Phenomenon**: "Missing dependency" found but cascade rollback executed, causing completed downstream modules to reset.
 
-### 蓝图快照（Blueprint Snapshot）
+**Decision method**: ask "does this change alter this module's externally exposed interface signature?"
 
-每层完成后保存快照到 `.arch/snapshots/`：
-- 上下文压力大时只加载当前层快照
-- 回滚时快速恢复到某一层状态
+## Best Practices
 
-### 接口契约测试自动生成
+### Use import path format for dependency annotation
 
-从 BEHAVIOR 声明的 pre/post/error 自动生成 pytest：
-- 每个 pre/error → 一个异常测试
-- 每个 post → 一个断言测试
+```
+Good: Dependencies: - from storage import loadData, saveData
+Bad: Dependencies: storage
+```
 
-### 依赖图可视化
+Import paths let Phase 2 fill without looking back at dependency module source code.
 
-在 SUMMARY.md 中用 ASCII 或 Mermaid 生成依赖图，一眼看出循环依赖。
+### CHECKPOINT.md Lightweight Tracking
+
+Only update CHECKPOINT.md on module completion, batch update BLUEPRINT.md after same layer all complete.
+
+### Choose mode after Phase 1 complete
+
+Estimated interface count is usually inaccurate. Only after Phase 1 draws blueprint can you see exact number, then decide simplified/full mode.
+
+### Runtime Verification Progressive Strategy
+
+Test lowest-layer FLOW first → then cross-layer FLOW → finally most complex FLOW.
+
+## Innovation Patterns
+
+### Blueprint Snapshot
+
+Save snapshot to `.arch/snapshots/` after each layer complete:
+- High context pressure: only load current layer snapshot
+- Rollback: quickly recover to某一层状态
+
+### Interface Contract Test Auto-Generation
+
+Auto-generate pytest from BEHAVIOR declaration pre/post/error:
+- Each pre/error → one exception test
+- Each post → one assertion test
+
+### Dependency Graph Visualization
+
+Generate dependency graph with ASCII or Mermaid in SUMMARY.md, spot circular dependencies at a glance.
 
 ```mermaid
 graph TD
@@ -85,3 +85,4 @@ graph TD
     transactions --> budgets
     budgets --> reports
     categories --> reports
+```

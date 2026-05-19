@@ -1,15 +1,15 @@
-# Architecture Summary — bookkeeping-cli
+# 架构摘要 — bookkeeping-cli
 
-## Overview
+## 概览
 
-6 modules / 16 interfaces / 9 data flows command-line bookkeeping tool (CLI).
+6 模块 / 16 接口 / 9 条数据流的命令行记账工具（CLI）。
 
-## Module Dependency Graph
+## 模块依赖图
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                           CLI (L6)                          │
-│                    Command-line entry, arg parsing           │
+│                    命令行入口，参数解析                       │
 └─────────────────────────────────────────────────────────────┘
            ↓                ↓                ↓                ↓
     ┌──────────┐      ┌──────────┐      ┌──────────┐    ┌──────────┐
@@ -25,38 +25,38 @@
          │                  ↓
     ┌────┴──────────────────┴────┐
     │        Storage (L1)          │
-    │       Data persistence       │
+    │       数据持久化             │
     └─────────────────────────────┘
 ```
 
-## Core Data Flows (sorted by complexity)
+## 核心数据流（按复杂度排序）
 
-| Priority | Name | Modules Involved | Description |
-|---------|------|-----------------|-------------|
-| 1 | F9 Budget Overview | 6 | Most complex, involves all layers |
-| 2 | F8 Monthly Report | 4 | Aggregates transactions and links categories |
-| 3 | F7 Check Budget | 4 | Calculates spent vs budget |
-| 4 | F3 Add Transaction | 3 | Validates category exists before write |
-| 5 | F1 Add Category | 2 | Simplest write operation |
+| 优先级 | 名称 | 涉及模块数 | 描述 |
+|--------|------|-----------|------|
+| 1 | F9 预算概览 | 6 | 最复杂，涉及所有层次的模块 |
+| 2 | F8 月度报表 | 4 | 聚合交易数据并关联分类 |
+| 3 | F7 检查预算 | 4 | 计算已花费与预算对比 |
+| 4 | F3 添加交易 | 3 | 验证分类存在后写入 |
+| 5 | F1 添加分类 | 2 | 最简单的写入操作 |
 
-## Design Decisions
+## 设计决策
 
-- **JSON over SQLite**: Single-user CLI tool, small data volume, no extra dependencies
-- **Monthly budgets**: Budget keyed by category_id + month
-- **Category pre-validation**: transactions and budgets validate category exists first
+- **选择 JSON 而非 SQLite**：单机 CLI 工具，数据量小，无需额外依赖
+- **按月预算**：预算以 category_id + month 为唯一键
+- **分类预验证**：transactions 和 budgets 依赖 categories 时先验证存在性
 
-## Failure Modes
+## 故障模式
 
-- When category deleted, its transactions remain (soft reference)
-- checkBudget throws clear error when budget not set
-- JSON file corruption returns empty data instead of crash
+- 分类被删除后，其交易仍保留（soft reference）
+- 预算未设置时 checkBudget 抛出明确错误
+- JSON 文件损坏时返回空数据而非崩溃
 
-## Quick Start
+## 快速开始
 
 ```bash
 cd examples/bookkeeping-cli
-python cli.py add-cat "Food" expense
-python cli.py add-cat "Salary" income
-python cli.py add-tx 50.0 1 2026-05-18 --note "Lunch" expense
+python cli.py add-cat "餐饮" expense
+python cli.py add-cat "工资" income
+python cli.py add-tx 50.0 1 2026-05-18 --note "午餐" expense
 python cli.py report 2026-05
 ```

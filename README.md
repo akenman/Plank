@@ -6,220 +6,221 @@
 </p>
 
 <p align="center">
-  <b>画好 Plank，再逐格填充</b><br>
+  <b>Draw Plank first, then fill in cells</b><br>
   <i>Architecture-first AI development methodology</i>
-</p>>
+</p>
 
 <p align="center">
-  <a href="#-快速体验"><img src="https://img.shields.io/badge/快速体验-3分钟-00D084?style=flat-square" alt="Quickstart"></a>
-  <a href="#-核心特性"><img src="https://img.shields.io/badge/核心特性-6大能力-6C5CE7?style=flat-square" alt="Features"></a>
-  <a href="#-实战验证"><img src="https://img.shields.io/badge/实战验证-真实项目-20C997?style=flat-square" alt="Verified"></a>
-  <a href="#-为什么需要-plank"><img src="https://img.shields.io/badge/为什么需要-痛点分析-FF6B6B?style=flat-square" alt="Why"></a>
-  <a href="#-完整示例"><img src="https://img.shields.io/badge/完整示例-6模块记账工具-FFA94D?style=flat-square" alt="Example"></a>
+  <a href="#-quick-start"><img src="https://img.shields.io/badge/Quick%20Start-3%20min-00D084?style=flat-square" alt="Quickstart"></a>
+  <a href="#-core-features"><img src="https://img.shields.io/badge/Core%20Features-6%20Capabilities-6C5CE7?style=flat-square" alt="Features"></a>
+  <a href="#-real-world-validation"><img src="https://img.shields.io/badge/Real%20World%20Validation-Proven-20C997?style=flat-square" alt="Verified"></a>
+  <a href="#-why-plank"><img src="https://img.shields.io/badge/Why%20Plank-Pain%20Points-FF6B6B?style=flat-square" alt="Why"></a>
+  <a href="#-full-example"><img src="https://img.shields.io/badge/Full%20Example-Bookkeeping%20CLI-FFA94D?style=flat-square" alt="Example"></a>
+  <a href="./README.zh-CN.md"><img src="https://img.shields.io/badge/中文文档-简体%20Chinese-blue?style=flat-square" alt="Chinese"></a>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="MIT License">
-  <img src="https://img.shields.io/badge/适用模型-8种-blueviolet?style=flat-square" alt="Models">
-  <img src="https://img.shields.io/badge/适用平台-5个-important?style=flat-square" alt="Platforms">
-  <img src="https://img.shields.io/badge/幻觉防护-3层-9cf?style=flat-square" alt="Guard">
+  <img src="https://img.shields.io/badge/Supported%20Models-8%20Models-blueviolet?style=flat-square" alt="Models">
+  <img src="https://img.shields.io/badge/Supported%20Platforms-5%20Platforms-important?style=flat-square" alt="Platforms">
+  <img src="https://img.shields.io/badge/Hallucination%20Guards-3%20Layers-9cf?style=flat-square" alt="Guard">
 </p>
 
 ---
 
-## Plank 是什么
+## What is Plank
 
-Plank 是一套**架构优先的 AI 编程方法论**——先绘制完整的架构蓝图（BLUEPRINT.md），再让 AI 从底层向上逐格填充代码。它用一份 Markdown 文件同时做到三件事：**全局导航**（所有模块在哪）、**空位标记**（还剩什么没写）、**进度追踪**（当前在做什么）。
+Plank is an **architecture-first AI development methodology** — draw a complete architecture blueprint (BLUEPRINT.md) first, then have AI fill in code from the bottom up. One Markdown file does three things: **global navigation** (where all modules are), **empty slot marking** (what's left to write), **progress tracking** (what we're doing now).
 
-Plank 的核心主张很简单：**先画好 Plank，再逐格填充。** 不写解析器、不学新语法、不引入运行时依赖——BLUEPRINT.md 就是纯文本，你现有的 AI 编程工具直接使用。
+Plank's core promise is simple: **Draw Plank first, then fill in cells.** No parser to write, no new syntax to learn, no runtime dependencies — BLUEPRINT.md is just plain text, usable directly with your existing AI coding tools.
 
-> Plank 最初来源于一个观察：AI 写代码最大的问题不是"不会写"，而是"没有全局感"。它能写好一个函数，但会忘记十个对话前确定的接口签名。Plank 用一份持续维护的蓝图文件，给 AI 提供一个"永不丢失的上下文"。
+> Plank originated from an observation: the biggest problem with AI-written code isn't "can't write", it's "no sense of the big picture". It can write a function well, but forgets the interface signature agreed ten conversations ago. Plank uses a continuously maintained blueprint file to give AI a "never-lost context".
 
-### 一句话概括
+### In a Nutshell
 
-> **先蓝图，后代码。全局逻辑零断裂。**
-
----
-
-## 为什么需要 Plank
-
-### 你是否有过这些「AI 编程综合征」？
-
-| 症状 | 深层问题 | Plank 的方案 |
-|------|---------|-------------|
-| AI 写的函数调用不存在的参数 | 接口没有契约定义 | 每个接口先写 pre/post/error/side-effect 四段声明 |
-| 模块 A 调了模块 B 还没写的接口 | 依赖方向反了，或构建顺序不对 | @BUILD_ORDER 从底层向上逐层构建 |
-| 对话到一半 AI 忘了前面 10 轮的设计 | 上下文溢出，无持久化架构记录 | BLUEPRINT.md 是持续维护的架构真相源 |
-| 改了一个接口，三个模块跟着崩 | 无变更追踪 | 所有变更必须记录 @CHANGE，级联回退可控 |
-| 写了 500 行发现架构不对 | "先写再说"的陷阱 | 先花 5 分钟画蓝图，确认后再写代码 |
+> **Blueprint first, code second. Zero breaks in global logic.**
 
 ---
 
-## 它是如何工作的
+## Why Plank
+
+### Have you experienced "AI Coding Syndrome"?
+
+| Symptom | Root Problem | Plank's Solution |
+|---------|-------------|-----------------|
+| AI writes function calls with non-existent params | No contract definition for interfaces | Pre-write pre/post/error/side-effect declarations for every interface |
+| Module A calls an unwritten interface from Module B | Dependencies in wrong direction, wrong build order | @BUILD_ORDER builds from bottom up layer by layer |
+| AI forgets design from earlier in conversation halfway through | Context overflow, no persistent architecture record | BLUEPRINT.md is continuously maintained single source of truth |
+| Changing one interface breaks three modules | No change tracking | All changes must be documented with @CHANGE, cascading rollback controllable |
+| 500 lines written, architecture is wrong | "Write first, think later" trap | Spend 5 minutes drawing blueprint first, confirm before coding |
+
+---
+
+## How it Works
 
 ```
-传统方式：      "帮我写个记账工具" → AI 直接写代码 → 改 5 轮 → 架构崩坏
+Traditional:      "Build a bookkeeping app" → AI writes code → 5 rounds of fixes → broken architecture
 
-Plank 方式：    "用 plank 帮我写个记账工具"
-               ↓
-           Phase 1 ── AI 画出 BLUEPRINT.md（模块 / 接口 / 依赖 / 数据流）
-               ↓
-           你确认蓝图（约 1 分钟）
-               ↓
-           Phase 2 ── AI 从底层向上逐格填充代码
-               ↓
-           Phase 3 ── AI 自动运行验证所有功能路径
-               ↓
-           产出可运行的项目 + 30 行架构摘要
+Plank:            "Use plank to build a bookkeeping app"
+                ↓
+           Phase 1 ── AI draws BLUEPRINT.md (modules / interfaces / dependencies / data flows)
+                ↓
+           You confirm blueprint (~1 minute)
+                ↓
+           Phase 2 ── AI fills code from bottom up layer by layer
+                ↓
+           Phase 3 ── AI auto-runs all functional paths
+                ↓
+           Output: working project + 30-line architecture summary
 ```
 
 ---
 
-## 快速体验：3 分钟从零到运行
+## Quick Start: 3 Minutes from Zero to Working
 
 ```bash
-# 在你的 AI 编程工具中输入：
+# In your AI coding tool, say:
 
-"用 plank 帮我做一个命令行记账工具"
+"Use plank to build a command-line bookkeeping app"
 ```
 
-**你将在 3 分钟内得到：**
+**You'll get in 3 minutes:**
 
 ```
- ① AI 画 BLUEPRINT.md（所有模块/接口/数据流清晰可见）
- ② 你确认蓝图（约 1 分钟）
- ③ AI 从 storage 开始，逐层填充到 cli 层
- ④ AI 自动运行 9 条数据流验证
- ⑤ 生成 .arch/SUMMARY.md（30 行看懂架构）
+  ① AI draws BLUEPRINT.md (all modules/interfaces/data flows clearly visible)
+  ② You confirm blueprint (~1 minute)
+  ③ AI starts from storage, fills up to cli layer
+  ④ AI auto-validates 9 data flows
+  ⑤ Generates .arch/SUMMARY.md (30 lines to understand architecture)
 ```
 
-首次使用，建议先从 L1 开始熟悉：
+First time? Start with L1:
 
 ```
-"用 plank L1 设计一个用户管理接口"
+"Use plank L1 to design a user management interface"
 ```
 
-AI 会输出该接口的 pre/post/error/side-effect 行为声明——不需要写代码，先感受下契约设计的严谨性。
+AI will output pre/post/error/side-effect behavior declarations — no coding needed, just experience the rigor of contract design.
 
 ---
 
-## 核心特性
+## Core Features
 
-### 三大核心机制
+### Three Core Mechanisms
 
-- **蓝图填充模型** — BLUEPRINT.md 是全局导航 + 进度追踪 + 空位标记，一份文件代替所有散落的设计文档
-- **三层幻觉防护** — 行为声明 + 边界矩阵 + 错误链映射，环环相扣
-- **上下文压力感知** — 4 个可观察信号自动判断何时释放上下文
+- **Blueprint Fill Model** — BLUEPRINT.md is global nav + progress tracking + empty slots, one file replaces all scattered design docs
+- **Three Hallucination Guard Layers** — behavior declarations + boundary matrix + error chain mapping, layered protection
+- **Context Pressure Awareness** — 4 observable signals auto-decide when to release context
 
-### 7 条硬约束
+### Seven Hard Constraints
 
-用户确认门 → 一次一格 → 依赖先填 → 变更有痕 → 模块边界 → 接口有消费者 → 一次读取
+User Confirmation Gate → One Slot at a Time → Dependencies First → Changes Documented → Module Boundaries → Interfaces Have Consumers → Read Once
 
-### 异常处理细分
+### Exception Handling Granularity
 
 ```
-接口级异常 ── 本模块对外接口签名变了 → 级联回退下游模块
-依赖级异常 ── 本模块需要新增对其他模块的依赖 → 只补充标注，不回退
+Interface-level — this module's external signature changes → cascade rollback downstream
+Dependency-level — this module needs new dependency on others → just add annotation, no rollback
 ```
 
-### 规模自适应
+### Scale Adaptation
 
-| 接口数 | 模式 | 验证策略 |
+| Interface Count | Mode | Validation Strategy |
 |--------|------|---------|
-| ≤ 10 | 简化 | 跳过边界矩阵，精简错误链 |
-| 11-50 | 完整 | 全量检查 |
-| > 50 | 风险导向 | 只检查入口/被多模块依赖/外部依赖接口 |
+| ≤ 10 | Simplified | Skip boundary matrix, simplify error chain |
+| 11-50 | Full | Full verification |
+| > 50 | Risk-oriented | Only check entry / multi-dependent / external interfaces |
 
 ---
 
-## 实战验证
+## Real World Validation
 
-> 以下数据来自用 Plank 从零构建 Bookkeeping CLI 的真实过程。
+> Data comes from real-world building of Bookkeeping CLI with Plank.
 
-| 指标 | 数据 |
-|------|------|
-| 模块数 | 6（storage → categories → transactions → budgets → reports → cli） |
-| 接口总数 | 16 |
-| 数据流 | 9 条 |
-| 构建层数 | 6 层 |
-| 总代码量 | ~360 行 |
-| 第三方依赖 | **零**（纯 Python 标准库） |
-| 首次运行 | **一次性通过，零 bug** |
+| Metric | Value |
+|--------|-------|
+| Module Count | 6 (storage → categories → transactions → budgets → reports → cli) |
+| Total Interfaces | 16 |
+| Data Flows | 9 |
+| Build Layers | 6 |
+| Total Code | ~360 lines |
+| Dependencies | **Zero** (pure Python stdlib) |
+| First Run | **Passed once, zero bugs** |
 
-### 完整的运行时验证输出
+### Full Runtime Validation Output
 
 ```
-> python cli.py add-cat "餐饮" expense
-> python cli.py add-cat "工资" income
-已添加分类: #1 餐饮 (expense)
-已添加分类: #2 工资 (income)
+> python cli.py add-cat "Food" expense
+> python cli.py add-cat "Salary" income
+Added category: #1 Food (expense)
+Added category: #2 Salary (income)
 
 > python cli.py list-cats
-ID | 名称 | 类型
----+------+----
-1  | 餐饮 | expense
-2  | 工资 | income
+ID | Name   | Type
+---+--------+------
+1  | Food   | expense
+2  | Salary | income
 
-> python cli.py add-tx 50.0 1 2026-05-18 --note "午餐" expense
-> python cli.py add-tx 10000.0 2 2026-05-01 --note "月薪" income
-已添加交易: #1 ￥50.00 (expense)
-已添加交易: #2 ￥10,000.00 (income)
+> python cli.py add-tx 50.0 1 2026-05-18 --note "Lunch" expense
+> python cli.py add-tx 10000.0 2 2026-05-01 --note "Monthly salary" income
+Added transaction: #1 $50.00 (expense)
+Added transaction: #2 $10,000.00 (income)
 
 > python cli.py set-budget 1 2026-05 500.0
 > python cli.py check-budget 1 2026-05
-已设置预算: 2026-05 预算 ￥500.00
-预算状态: 已花费 ￥50.00 / 预算 ￥500.00
-剩余: ￥450.00 (10.0%)
+Set budget: 2026-05 budget $500.00
+Budget status: Spent $50.00 / Budget $500.00
+Remaining: $450.00 (10.0%)
 
 > python cli.py report 2026-05
-=== 2026-05 月度报表 ===
-总收入: ￥10,000.00
-总支出: ￥50.00
-净额: ￥9,950.00
+=== 2026-05 Monthly Report ===
+Total Income: $10,000.00
+Total Expense: $50.00
+Net: $9,950.00
 ```
 
 ---
 
-## 渐进式采用
+## Progressive Adoption
 
-不一定要走完整流程，从最适合你的粒度开始：
+You don't have to go full — start with what fits you:
 
 ```
                     ┌───────────────────┐
-                    │  L3 完整流程       │  ≥ 4 模块新项目 / 大型重构
-                    │  蓝图→填充→验证    │  触发: "用 plank"
+                    │  L3 Full Process    │  ≥ 4 module new projects / major refactors
+                    │  Blueprint→Fill→Validate  │  Trigger: "use plank"
                     └────────┬──────────┘
                              │
                     ┌────────┴──────────┐
-                    │  L2 约束驱动       │  2-3 模块重构 / 修复接口不一致
-                    │  7 条约束检查      │  触发: "用 plank 检查约束"
+                    │  L2 Constraint-Driven  │  2-3 module refactors / fix interface mismatches
+                    │  7 constraint checks   │  Trigger: "use plank to check constraints"
                     └────────┬──────────┘
                              │
                     ┌────────┴──────────┐
-                    │  L1 行为契约       │  设计接口 / Review 代码 / 写 API 文档
-                    │  pre/post/        │  触发: "用 plank L1 设计接口"
+                    │  L1 Behavior Contract│  Design interface / Review code / API docs
+                    │  pre/post/         │  Trigger: "use plank L1 to design interface"
                     │  error/side-effect │
                     └───────────────────┘
 ```
 
 ---
 
-## 完整示例：6 模块记账工具
+## Full Example: 6-Module Bookkeeping CLI
 
 ```
 bookkeeping-cli/
-├── cli.py                       # 命令行界面（第 6 层）
-├── categories/__init__.py       # 分类管理（第 2 层）
-├── transactions/__init__.py     # 交易管理（第 3 层）
-├── budgets/__init__.py          # 预算管理（第 4 层）
-├── reports/__init__.py          # 报表生成（第 5 层）
-├── storage/__init__.py          # 数据持久化（第 1 层）
+├── cli.py                       # Command-line interface (Layer 6)
+├── categories/__init__.py       # Category management (Layer 2)
+├── transactions/__init__.py     # Transaction management (Layer 3)
+├── budgets/__init__.py          # Budget management (Layer 4)
+├── reports/__init__.py          # Report generation (Layer 5)
+├── storage/__init__.py          # Data persistence (Layer 1)
 └── .arch/
-    ├── BLUEPRINT.md             # 完整架构蓝图
-    └── SUMMARY.md               # 人类可读架构摘要
+    ├── BLUEPRINT.md             # Complete architecture blueprint
+    └── SUMMARY.md               # Human-readable architecture summary
 ```
 
-**依赖图：**
+**Dependency Graph:**
 
 ```
                       ┌──────┐
@@ -237,40 +238,40 @@ bookkeeping-cli/
                └───────┬───┘       │
                        │           │
                     ┌──┴───┐       │
-                    │Storage│◄──────┘  L1)
+                    │Storage│◄──────┘  (L1)
                     └──────┘
 ```
 
 ---
 
-## 平台 & 模型支持
+## Platform & Model Support
 
-### 5 个平台
+### 5 Platforms
 
-| 平台 | 状态 | 回退策略 |
-|------|------|---------|
-| DeepSeek TUI | ✅ 完全支持 | — |
-| Claude Code | ✅ 完全支持 | — |
-| Trae CN | ✅ 支持 | 子任务不可用时串行填充 |
-| Cursor | ✅ 支持 | 计划工具不可用时用文件记录 |
-| Codex CLI | ✅ 支持 | 计划工具不可用时用文件记录 |
+| Platform | Status | Fallback Strategy |
+|----------|--------|------------------|
+| DeepSeek TUI | ✅ Full Support | — |
+| Claude Code | ✅ Full Support | — |
+| Trae CN | ✅ Supported | Serial fill when sub-tasks not available |
+| Cursor | ✅ Supported | Use file records when planning tools not available |
+| Codex CLI | ✅ Supported | Use file records when planning tools not available |
 
-### 8 个模型
+### 8 Models
 
-| 模型 | 上下文 | 填充策略 | 验证强度 |
-|------|--------|---------|---------|
-| DeepSeek V4 | 1M | 全量加载 + 追加缓存 | 深度：思考模式预判 |
-| DeepSeek V3 | 128K | Phase 1 全量，Phase 2 按需 | 全量逐行 |
-| Claude 4.x | 200K | Phase 1 全量，Phase 2 按需 | 最严格：零容忍 |
-| GPT-4o | 128K | 仅当前模块+依赖签名 | 轻量：仅检查签名 |
-| GLM-4 | 128K | Phase 1 全量，Phase 2 按需 | 全量 |
-| Qwen 3 | 128K-1M | Phase 1 全量，Phase 2 按需 | 全量 |
-| Mistral Large | 128K | 仅当前模块 | 抽样 |
-| Llama 4 | 128K-1M | Phase 1 全量，Phase 2 按需 | 全量 |
+| Model | Context | Fill Strategy | Validation Rigor |
+|-------|---------|--------------|----------------|
+| DeepSeek V4 | 1M | Full load + append cache | Deep: thinking mode anticipation |
+| DeepSeek V3 | 128K | Phase 1 full, Phase 2 on-demand | Full line-by-line |
+| Claude 4.x | 200K | Phase 1 full, Phase 2 on-demand | Strictest: zero tolerance |
+| GPT-4o | 128K | Only current module + dependency signatures | Light: signature only |
+| GLM-4 | 128K | Phase 1 full, Phase 2 on-demand | Full |
+| Qwen 3 | 128K-1M | Phase 1 full, Phase 2 on-demand | Full |
+| Mistral Large | 128K | Only current module | Sampling |
+| Llama 4 | 128K-1M | Phase 1 full, Phase 2 on-demand | Full |
 
 ---
 
-## 安装
+## Installation
 
 ```bash
 # DeepSeek TUI
@@ -281,52 +282,52 @@ cp -r plank ~/.deepseek/skills/
 mkdir -p ~/.claude/skills/
 cp -r plank ~/.claude/skills/
 
-# 其他平台直接粘贴 SKILL.md 内容到系统提示中
+# Other platforms: paste SKILL.md directly into system prompt
 ```
 
-### 验证
+### Verify
 
 ```
-"用 plank L1 设计一个简单的接口"
-→ 能正确输出 pre/post/error/side-effect → 安装成功
+"Use plank L1 to design a simple interface"
+→ Correctly outputs pre/post/error/side-effect → installation successful
 ```
 
 ---
 
-## 常见问题
+## FAQ
 
 <details>
-<summary><b>每次都要走完整 L3 吗？</b></summary>
-不需要。L1（行为契约）和 L2（约束驱动）更轻量，适合单模块任务。
+<summary><b>Do I have to go full L3 every time?</b></summary>
+No. L1 (behavior contract) and L2 (constraint-driven) are lighter, perfect for single-module tasks.
 </details>
 
 <details>
-<summary><b>已有项目怎么用？</b></summary>
-使用「逆向蓝图」功能。AI 自动分析项目结构后提取模块和接口，生成 BLUEPRINT.md。
+<summary><b>How to use with existing projects?</b></summary>
+Use "Reverse Blueprint". AI auto-analyzes project structure to extract modules and interfaces, generating BLUEPRINT.md.
 </details>
 
 <details>
-<summary><b>需要学习新 DSL 吗？</b></summary>
-不需要。BLUEPRINT.md 是纯 Markdown，没有解析器、没有编译器、没有运行时依赖。
+<summary><b>Do I need to learn a new DSL?</b></summary>
+No. BLUEPRINT.md is pure Markdown, no parser, no compiler, no runtime dependencies.
 </details>
 
 <details>
-<summary><b>Windows 兼容吗？</b></summary>
-兼容。平台适配中包含 Windows 的编码适配方案。
+<summary><b>Is Windows compatible?</b></summary>
+Yes. Platform adaptation includes Windows encoding handling.
 </details>
 
 ---
 
-## 路线图
+## Roadmap
 
-- [x] Phase 1→2→3 完整工作流
-- [x] 异常细分 — 接口级 vs 依赖级
-- [x] 惰性探针 — 按需检测
-- [x] Windows 编码适配
-- [x] 实战经验文档
-- [ ] 接口契约测试自动生成
-- [ ] 蓝图快照自动管理
-- [ ] Mermaid 依赖图可视化
+- [x] Phase 1→2→3 full workflow
+- [x] Exception granularity — interface-level vs dependency-level
+- [x] Lazy probing — on-demand detection
+- [x] Windows encoding adaptation
+- [x] Real-world experience docs
+- [ ] Interface contract test auto-generation
+- [ ] Blueprint snapshot auto-management
+- [ ] Mermaid dependency graph visualization
 
 ---
 
@@ -339,5 +340,5 @@ MIT © 2026 Plank contributors
 <p align="center">
   <b>Plank — Plan first. Build right. Ship clean.</b>
   <br><br>
-  <a href="#-快速体验">开始使用 →</a>
+  <a href="#-quick-start">Get Started →</a>
 </p>

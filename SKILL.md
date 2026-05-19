@@ -1,385 +1,381 @@
 ---
 name: plank
-description: 先绘制完整架构蓝图（BLUEPRINT.md），再从底层向上逐格填充代码。一份 Markdown 不写解析器、不学新语法、不引入运行时依赖——BLUEPRINT.md 就是纯文本，现有 AI 编程工具直接使用。 使用场景：(1) 任何中等以上复杂度的编程任务，尤其是多模块项目修复或重构。(2) 用户说"先设计再写代码"、"架构不合理"、"代码太零散"、"逻辑有漏洞"。(3) 任务复杂度明显需要全局设计时主动提议。
+description: Draw complete architecture blueprint (BLUEPRINT.md) first, then fill code from bottom up. One Markdown file, no parser, no new syntax, no runtime dependencies — BLUEPRINT.md is just plain text, directly usable with your existing AI coding tools. Usage scenarios: (1) Any medium+ complexity coding tasks, especially multi-module project repair or refactor. (2) When user says "design first then code", "bad architecture", "code is scattered", "logic has gaps". (3) Proactively suggest when task complexity clearly needs global design.
 metadata:
-  short-description: 先蓝图后代码，AI 编程全局逻辑零断裂
+  short-description: Blueprint first, code second. AI coding with zero global logic breaks.
 ---
 
-# Plank — 架构优先开发
+# Plank — Architecture-First Development
 
-先绘制完整蓝图（BLUEPRINT.md），再从底层向上逐格填充。蓝图是三个角色的合一：全局导航、空位标记、进度追踪。一个文件代替所有散落的设计文档。
+Draw complete blueprint (BLUEPRINT.md) first, then fill from bottom up. Blueprint is three roles in one: global navigation, empty slot marker, progress tracking. One file replaces all scattered design docs.
 
-## 快速体验（首次使用，3 分钟）
-
-```
-1. 想一个小需求（如"命令行待办事项"、"简单的记账工具"）
-2. 说: "用 plank L1 设计接口"
-   → AI 输出每个接口的 pre/post/error/side-effect 行为声明
-3. 说: "继续，L3 完整流程"
-   → AI 画蓝图 → 逐模块填充 → 运行验证 → 生成 SUMMARY.md
-4. 看一眼 .arch/SUMMARY.md，30 行看懂整个项目架构
-
-全程 3-5 分钟，产出可运行的完整项目。
-```
-
-## 分层加载
-
-本 skill 按触发条件分三层，避免无关内容占用上下文。
-
-### L1 核心（始终加载，当前 ~300 行）
-以下章节每次触发直接可用，无需额外加载：
-- 核心概念 / 快速体验 / 启动指令
-- 7 条约束 / 3 层幻觉防护 / 上下文压力感知
-- Phase 1/2/3 完整工作流 + 蓝图修正协议
-- 增量开发 / 迭代模式 / 逆向蓝图
-
-### L2 条件加载（满足条件时自动展开）
-
-| 触发条件 | 加载内容 |
-|---------|---------|
-| 非 DeepSeek TUI 或工具调用失败 | [平台适配](references/platform-adaptation.md) — 5 平台工具映射表 + 编码适配 + 回退策略 |
-| 模型不在 8 已知列表中 | [模型适配](references/model-adaptation.md) — 8 模型查表 + 4 问题自分类 |
-| 会话首次触发 skill | [能力探针](references/model-adaptation.md) — 惰性探针验证适配参数 |
-
-### L3 按需引用（显式需要时展开）
-
-| 触发条件 | 加载章节（均在 [高级特性](references/advanced-features.md)） |
-|---------|-------------------------------------------------------|
-| 实现完接口需要对照验证 | Behavior-Code 逐行对照 |
-| 模块标记 [done] 后 | Auto-Checkpoint 写入规则 |
-| 选择设计方案时 | Design Decision Log 格式 |
-| 同层 ≥ 2 模块 [empty] | 并行填充策略 |
-| 多人协作场景 | 多会话协作协议（LOCKS.md + 合并） |
-| 用户问"什么时候退出 skill" | 退出条件 |
-| 修改蓝图需要区分变更类型 | @CHANGE vs @DECISION 边界 |
-| 下游模块因上游变更无法对接 | Rollback 协议 |
-| 模块 [done] 后需要测试 | 测试策略 + 验收清单 |
-| 需要参考实战经验 | [实战经验](references/practical-patterns.md) — 常见陷阱与最佳实践 |
-
-
-## 约束系统（7 条硬规则，不可绕过）
-
-| # | 约束 | 一句话 | 违反后果 |
-|---|------|--------|---------|
-| 1 | 用户确认门 | 蓝图未确认不进 Phase 2 | 架构偏离用户预期 |
-| 2 | 一次一格 | 同时只能有一个 [in progress] | 上下文分裂，接口不一致 |
-| 3 | 依赖先填 | 上层模块等下层 [done] 后才能开始 | 写了但依赖还空着 |
-| 4 | 变更有痕 | 改蓝图必须有 @CHANGE | 隐式修改导致接口不匹配 |
-| 5 | 模块边界 | 不直接访问其他模块的内部文件 | 模块紧耦合 |
-| 6 | 接口有消费者 | 每个接口必须在 @FLOW 中出现 | 定义了不用的接口 |
-| 7 | 一次读取 | 依赖模块的源码只读一次 | 上下文被实现细节占满 |
-
-违规处理：停止 → 回退 → 纠正 → 记录 @CHANGE → 恢复。同一约束: 全部通过。同一约束连续违规 3 次则暂停向用户报告。
-
-## 逻辑幻觉防护（3 层）
-
-AI 代码的常见幻觉：不报错但数据不对。
-
-**第 1 层 — BEHAVIOR 声明**：每个接口定义扩展为四段：
+## Quick Start (First Time, 3 Minutes)
 
 ```
-接口名(params) → return
-  pre:  调用前必须为真的条件
-  post: 返回后保证为真的条件
-  error: 什么输入抛什么错
-  side-effect: 改变了什么状态
+1. Think of a small task (like "command-line todo app", "simple bookkeeping tool")
+2. Say: "use plank L1 to design interface"
+   → AI outputs pre/post/error/side-effect behavior declarations per interface
+3. Say: "continue, L3 full process"
+   → AI draws blueprint → fills module by module → validates runtime → generates SUMMARY.md
+4. Look at .arch/SUMMARY.md, understand full architecture in 30 lines
+
+Takes 3-5 minutes, produces fully working project.
 ```
 
-**第 2 层 — 边界矩阵**：每个模块对 6 个维度逐一检查：
+## Layered Loading
+
+This skill loads in layers based on trigger conditions to avoid irrelevant content consuming context.
+
+### L1 Core (Always Loaded, ~300 lines)
+These sections are always available:
+- Core concepts / quick start / startup instructions
+- 7 constraints / 3 hallucination guards / context pressure awareness
+- Phase 1/2/3 full workflow + blueprint revision protocol
+- Incremental development / iteration mode / reverse blueprint
+
+### L2 Conditional Loading (Auto-expands when conditions met)
+
+| Trigger Condition | Loaded Content |
+|-----------------|---------------|
+| Not DeepSeek TUI or tool calls fail | [Platform Adaptation](references/platform-adaptation.md) — 5 platform tool mapping + encoding adaptation + fallback |
+| Model not in 8 known list | [Model Adaptation](references/model-adaptation.md) — 8 model lookup + 4-question self-classification |
+| First session triggering skill | [Capability Probing](references/model-adaptation.md) — lazy probe validation for parameters |
+
+### L3 On-Demand Reference (Expands when explicitly requested)
+
+| Trigger Condition | Loaded Section (all in [Advanced Features](references/advanced-features.md)) |
+|-----------------|-------------------|
+| Need to verify implementation after interface done | Behavior-Code line-by-line comparison |
+| Module marked [done] | Auto-Checkpoint write rules |
+| Choosing design alternative | Design Decision Log format |
+| ≥ 2 [empty] modules on same layer | Parallel filling strategy |
+| Multi-person collaboration scenario | Multi-session collaboration protocol (LOCKS.md + merging) |
+| User asks "when to exit skill" | Exit conditions |
+| Modifying blueprint needs change type distinction | @CHANGE vs @DECISION boundaries |
+| Downstream modules can't connect due to upstream changes | Rollback protocol |
+| Module [done] needs tests | Test strategy + acceptance checklist |
+| Need to reference practical experience | [Practical Experience](references/practical-patterns.md) — common pitfalls & best practices |
+
+
+## Constraint System (7 Hard Rules, No Bypass)
+
+| # | Constraint | One-Liner | Violation Consequence |
+|---|-----------|-----------|---------------------|
+| 1 | User Confirmation Gate | Blueprint unconfirmed = no Phase 2 | Architecture diverges from user expectation |
+| 2 | One Slot at a Time | Only one [in progress] at once | Context splits, interfaces inconsistent |
+| 3 | Dependencies First | Upper layers wait until lower [done] | Written but dependencies still empty |
+| 4 | Changes Documented | Blueprint changes must have @CHANGE | Implicit changes cause interface mismatch |
+| 5 | Module Boundaries | No direct access to other modules' internals | Modules tightly coupled |
+| 6 | Interfaces Have Consumers | Every interface must appear in @FLOW | Defined but unused interfaces |
+| 7 | Read Once | Dependency source code read only once | Context filled with implementation details |
+
+Violation handling: Stop → Rollback → Correct → Document @CHANGE → Resume. Same constraint all passed; same constraint violated 3x in a row → pause and report to user.
+
+## Hallucination Guard (3 Layers)
+
+Common AI code hallucination: no errors but data is wrong.
+
+**Layer 1 — Behavior Declarations**: Every interface expanded to four sections:
 
 ```
-空输入：
+InterfaceName(params) → return
+  pre:  Conditions that must hold before calling
+  post: Conditions guaranteed to hold after returning
+  error: What inputs throw what errors
+  side-effect: What state is changed
+```
+
+**Layer 2 — Boundary Matrix**: Every module checked dimension by dimension:
 
 ```
-空输入 | 不存在引用 | 边界值 | 重复操作 | 类型越界 | 依赖故障
+Empty Input | Non-existent Reference | Boundary Value | Repetition | Type Out-of-Bounds | Dependency Failure
 ```
 
-每项 ✓（已覆盖）或 —（不适用），不允许空的 ❌。
+Each is either ✓ (covered) or — (not applicable); no empty ❌ allowed.
 
-**"不适用"判定标准**：
-- 空输入 —：接口无参数（如 `listAll()`）
-- 不存在引用 —：接口不接收 ID/引用类参数
-- 边界值 —：参数为枚举类型且枚举值有限（已在 pre 中穷举）
-- 重复操作 —：操作是幂等的（重复调用结果一致，如读取操作）
-- 类型越界 —：参数类型为 bool 或固定枚举，无越界可能
-- 依赖故障 —：模块无外部依赖（第 1 层模块）
+**"Not applicable" criteria**:
+- Empty Input —: interface has no parameters (like `listAll()`)
+- Non-existent Reference —: interface receives no ID/reference params
+- Boundary Value —: param is enum with finite values (exhausted in pre)
+- Repetition —: operation is idempotent (repeat calls same result, like read operations)
+- Type Out-of-Bounds —: param type is bool or fixed enum, no overflow possible
+- Dependency Failure —: module has no external dependencies (Layer 1 module)
 
-**第 3 层 — 错误链映射**：跨模块错误的传播路径显式列出：
+**Layer 3 — Error Chain Mapping**: Cross-module error propagation explicitly listed:
 
 ```
 @ERROR_CHAIN
-  源头: A.getX() → null
-  传播: B.doSomething() → 检查返回值，抛异常
-  终点: B 内部闭合
+  Source: A.getX() → null
+  Propagation: B.doSomething() → checks return value, throws
+  Termination: B handles internally
 ```
 
-三个防护任一不完整 → 不进入 Phase 3。
+Any guard incomplete → no Phase 3.
 
 
-## 上下文压力感知（基于可观察信号）
+## Context Pressure Awareness (Observable Signals Only)
 
-阈值按模型自适应（查 [模型适配](references/model-adaptation.md) 表）。AI 无法直接读取"上下文使用率百分比"，改用 4 个可观察信号来判断压力：
+Thresholds adapted per model (see [Model Adaptation](references/model-adaptation.md) table). AI can't directly read "context usage %", so uses 4 observable signals:
 
-| 信号 | 触发条件 | 判断 |
-|------|---------|------|
-| 旧内容回流 | 工具输出中重复出现前 3 轮已处理过的文件内容（同一文件的相同段落再次出现） | 🟠 |
-| 推理步数增加 | 完成一个填充循环的工具调用数 > 基准×1.5（基准 = 模块接口数 × 1.5，最小 4，最大 8） | 🟡 |
-| 频繁读蓝图 | 同一次填充中读 BLUEPRINT.md 超过 2 次 | 🔴 |
-| 错误模式重复 | 连续出现同类接口不匹配 | 🟠 |
+| Signal | Trigger Condition | Judgment |
+|--------|----------------|---------|
+| Old Content Reflow | Tool output repeats file content processed in last 3 turns (same section reappears) | 🟠 |
+| Reasoning Steps Increased | Tool calls per fill cycle > baseline×1.5 (baseline = interface count × 1.5, min 4, max 8) | 🟡 |
+| Frequent Blueprint Reads | BLUEPRINT.md read > 2x during same fill | 🔴 |
+| Error Pattern Repeats | Same kind of interface mismatch occurs consecutively | 🟠 |
 
-判断逻辑：🟢 无信号 → 继续；🟡 1 个黄信号 → 释放已完成模块代码；🟠 1 个橙信号 → 释放代码 + 缩减加载范围；🔴 红信号 → 暂停填充，写入 CHECKPOINT，向用户报告。
-
-
-## 启动指令
-
-收到 "用 plank" 或触发场景时：
-
-```
-第 0 步：判断
-  ├── 新项目 → Phase 1
-  ├── 现有项目 → 逆向蓝图 → Phase 2
-  └── 简单任务（3 文件以内、单模块）→ 不要触发本 skill
-
-第 0.3 步：选择采用粒度（渐进式）
-  不一定要走完整三阶段。根据需求选择：
-  
-  L1 行为契约 ──── 适合：设计接口、Review 代码、写 API 文档
-    产出: 每个接口的 pre/post/error/side-effect 四段声明
-    不画 BLUEPRINT.md，不执行 Phase 2/3
-    触发: "用 plank L1" / "用 plank 设计接口"
-  
-  L2 约束驱动 ──── 适合：重构现有代码、修复接口不一致
-    产出: L1 + 7 条约束检查 + BEHAVIOR 对照（关键接口）
-    可选: 最小蓝图（仅 @MODULE + @FLOW，不含 @DATA/@BUILD_ORDER）
-    触发: "用 plank 检查约束" / "这个模块的接口有没有问题"
-  
-  L3 完整流程 ──── 适合：新项目、大型重构
-    产出: 完整 BLUEPRINT.md + Phase 1→2→3
-    触发: "用 plank" / "先设计再写代码"
-  
-  未指定粒度时，根据任务复杂度自动选择：
-    单模块/接口设计 → L1
-    2-3 模块重构 → L2
-    ≥ 4 模块新项目 → L3
-  
-第 0.5 步：目录结构
-  每个模块一个目录，入口文件只导出蓝图上定义的接口
-  
-第 0.6 步：选择模式（延迟到 Phase 1 完成后决定）
-  模式选择依赖接口总数，而接口总数在 Phase 1 完成后才确定。
-  Phase 0 仅标记"待定"，Phase 1→2 预检通过后根据实际接口数决定：
-  ├── 接口总数 ≤ 10 → 简化模式：跳过边界矩阵，@ERROR_CHAIN 仅保留 1-2 条最关键路径，
-  │                   @DECISION 仅记录非显而易见的选择；Phase 3 只验证 ①⑤⑥
-  └── 接口总数 > 10 → 完整模式：边界矩阵 + 全量 @ERROR_CHAIN + @DECISION 全量
-```
+Decision logic: 🟢 no signals → continue; 🟡 1 yellow → release completed module code; 🟠 1 orange → release code + reduce load scope; 🔴 red → pause filling, write CHECKPOINT, report to user.
 
 
-## Phase 1：画蓝图
+## Startup Instructions
 
-七步分解框架：
+On receiving "use plank" or trigger scenario:
 
 ```
-① 实体抽取 → @DATA
-② 行为识别 → @FLOW
-③ 模块划分 → @MODULE
-④ 依赖标注 → 按以下格式写清依赖模块、接口和 import 路径：
+Step 0: Decide
+  ├── New project → Phase 1
+  ├── Existing project → Reverse Blueprint → Phase 2
+  └── Simple task (<3 files, single module) → don't trigger this skill
+
+Step 0.3: Choose adoption granularity (progressive)
+  Don't have to go full L3. Choose based on need:
+  
+  L1 Behavior Contract    — Good for: design interface, review code, write API docs
+    Output: pre/post/error/side-effect declarations per interface
+    NO BLUEPRINT.md, NO Phase 2/3
+    Trigger: "use plank L1" / "use plank to design interface"
+  
+  L2 Constraint-Driven  — Good for: refactor existing code, fix interface mismatches
+    Output: L1 + 7 constraint checks + BEHAVIOR comparison (critical interfaces)
+    Optional: minimal blueprint (only @MODULE + @FLOW, no @DATA/@BUILD_ORDER)
+    Trigger: "use plank to check constraints" / "are this module's interfaces okay?"
+  
+  L3 Full Process       — Good for: new projects, major refactors
+    Output: full BLUEPRINT.md + Phase 1→2→3
+    Trigger: "use plank" / "design first then code"
+  
+  If no granularity specified, auto-select:
+    Single module/interface design → L1
+    2-3 module refactor → L2
+    ≥ 4 module new project → L3
+  
+Step 0.5: Directory structure
+  One directory per module, entry file exports only blueprint-defined interfaces
+  
+Step 0.6: Choose mode (delay until after Phase 1 complete)
+  Mode depends on interface count, which is only known after Phase 1.
+  Phase 0 just marks "pending". After Phase 1→2 pre-check passes:
+    ├── Total interfaces ≤ 10 → Simplified mode: skip boundary matrix, @ERROR_CHAIN only 1-2 most critical paths,
+    │                             @DECISION only record non-obvious choices; Phase 3 only verify ①⑤⑥
+    └── Total interfaces > 10 → Full mode: boundary matrix + full @ERROR_CHAIN + full @DECISION
+```
+
+
+## Phase 1: Draw Blueprint
+
+7-step decomposition framework:
+
+```
+① Entity extraction → @DATA
+② Behavior identification → @FLOW
+③ Module partitioning → @MODULE
+④ Dependency annotation → write clearly with import path:
    
-   依赖:
+   Dependencies:
      - from storage import loadData, saveData
      - from categories import getCategoryById
    
-   （不只写"依赖 B"，必须包含 import 路径，确保 Phase 2 填充时无需回看源码）
+   (NOT just "depends on B" — must have import path so Phase 2 fills without looking back)
 
-⑤ 构建排序 → @BUILD_ORDER（规则：每个模块的层号 = max(所有直接依赖的层号) + 1；
-   无依赖的模块为第 1 层。例如 A 依赖 B 依赖 C → C=1, B=2, A=3）
+⑤ Build ordering → @BUILD_ORDER (rule: each module layer = max(all direct dependencies layers) + 1;
+   no-dependency modules = Layer 1. Ex: A depends B depends C → C=1, B=2, A=3)
    
-   层号验证：从第 1 层开始逐层检查，每个模块的层号 = max(其依赖模块的层号) + 1。
-   若不一致 → 重新计算。特别注意跨多层依赖的模块（如 reports 依赖 3 层和 4 层的模块 → reports=5 而非 4）。
+   Layer validation: check from Layer 1 upward, each module layer = max(dependencies layers) + 1.
+   If inconsistent → recalculate. Especially note cross-multi-layer modules (like reports depends L3 and L4 → reports=5, not 4)
 
-⑥ 覆盖率检查 → 每个功能点→@FLOW→@MODULE 接口的链完整
-⑦ 用户确认 → 展示蓝图，等待确认
+⑥ Coverage check → every feature has @FLOW→@MODULE path complete
+⑦ User confirmation → show blueprint, wait for approval
 ```
 
-Phase 1→2 预检（逐项执行）：
-  ① @MODULE：每个模块有名称、职责、接口、依赖、状态 → 全部 ✓ 才通过
-  ② 构建顺序：按层号递增排列，每层内的模块不互相依赖 → 验证无逆依赖
-  ③ 依赖完整性：每个 @MODULE 的「依赖」字段指向的模块名都在 @MODULE 列表中存在
-  ④ @FLOW：每条 @FLOW 中的模块名都能在 @MODULE 中找到对应的接口
-  ⑤ @DATA：@FLOW 中引用的每个数据实体都在 @DATA 中有定义
-  ⑥ 无循环依赖：从任意模块沿依赖链遍历不会回到自身（用 DFS 验证）
-  ⑦ 无同名冲突：接口名在全蓝图范围内唯一
-  ⑧ 层号递推验证：每个模块的层号 = max(其依赖模块的层号) + 1，不一致则重新计算
+Phase 1→2 pre-check (execute one by one):
+  ① @MODULE: every module has name, responsibility, interfaces, dependencies, status → all ✓ to pass
+  ② Build order: ordered by increasing layer, no intra-layer dependencies → verify no reverse dependencies
+  ③ Dependency completeness: every @MODULE's "dependencies" points to modules existing in @MODULE list
+  ④ @FLOW: every module name in @FLOW has corresponding interfaces in @MODULE
+  ⑤ @DATA: every data entity referenced in @FLOW defined in @DATA
+  ⑥ No circular dependencies: traversing from any module along dependencies never loops back (DFS verify)
+  ⑦ No name conflicts: interface names unique across blueprint
+  ⑧ Layer recursive validation: every module layer = max(dependency layers) + 1; recalculate if inconsistent
 
-**BLUEPRINT.md 结构**：
+**BLUEPRINT.md Structure**:
 
 ```
-@PROGRESS（进度条）
-@MODULE（模块地图：职责、接口、依赖、状态 [empty|done]）
-@FLOW（数据流：步骤和涉及模块）
-@DATA（数据结构：字段名和类型）
-@BUILD_ORDER（构建顺序）
-@CROSSCUT（跨切面：错误处理、日志、配置、平台适配、输出编码等）
-@EXTERNAL（外部依赖：数据库、第三方 API、消息队列、文件系统等的接口契约）
-@ERROR_CHAIN（错误链映射）
-@CHANGE（变更日志）
+@PROGRESS (progress bar)
+@MODULE (module map: responsibility, interfaces, dependencies, status [empty|done])
+@FLOW (data flows: steps and involved modules)
+@DATA (data structures: field names and types)
+@BUILD_ORDER (build sequence)
+@CROSSCUT (cross-cutting: error handling, logging, config, platform adaptation, output encoding, etc.)
+@EXTERNAL (external dependencies: DB, 3rd-party API, MQ, filesystem, etc. interface contracts)
+@ERROR_CHAIN (error chain mapping)
+@CHANGE (change log)
 ```
 
-@EXTERNAL 格式示例：
+@EXTERNAL format example:
 ```
 @EXTERNAL PostgreSQL
-  类型: 关系数据库
-  连接: DATABASE_URL 环境变量
-  契约: 
-    - 所有持久化操作通过此数据库，不使用 ORM（直接 SQL）
-    - 表结构与 @DATA 一一对应
-    - 连接池: min=2, max=10
-  故障模式: 连接失败 → 重试 3 次 → 抛 DatabaseError
+  Type: Relational database
+  Connection: DATABASE_URL env var
+  Contract:
+    - All persistence through this DB, no ORM (direct SQL)
+    - Table structure 1:1 with @DATA
+    - Connection pool: min=2, max=10
+  Failure mode: Connection fail → retry 3x → throw DatabaseError
 
 @EXTERNAL Stripe API
-  类型: 第三方支付
-  认证: STRIPE_SECRET_KEY
-  契约:
+  Type: 3rd-party payment
+  Auth: STRIPE_SECRET_KEY
+  Contract:
     - createPayment(amount, currency) → PaymentIntent
-    - 仅 payments 模块可以调用
-  故障模式: API 超时 → 重试 1 次 → 返回 pending 状态
+    - Only payments module may call
+  Failure mode: API timeout → retry 1x → return pending status
 ```
 
-@EXTERNAL 规则：
-  - 每个外部依赖一个条目
-  - 必须声明"哪个模块可以使用"（默认所有模块可用 → 不安全）
-  - 故障模式必须写（外部依赖是最不可控的故障源）
+@EXTERNAL rules:
+  - One entry per external dependency
+  - Must declare "which modules may use" (default all modules → unsafe)
+  - Failure mode mandatory (external dependencies = most unpredictable failure points)
 
 
-## Phase 2：逐格填充
+## Phase 2: Fill Slot by Slot
 
-对每个 [empty] 模块执行：
-
-```
-1. 定位 → 确认依赖全 [done]
-2. 加载 → 当前模块接口 + 依赖模块接口签名 + @CROSSCUT
-   （不读依赖源码。不读无关 @FLOW）
-3. 实现 → 按蓝图签名写，落实 pre/post/error/side-effect 四项。
-   蓝图是行为声明的唯一真相源，代码不应重复录入蓝图内容。
-   @see 引用方式（按项目规范选择）：
-     - 宽松规范项目：在模块入口文件顶部写一行 `@see BLUEPRINT.md @MODULE <name>`
-     - 严格规范项目：不在代码中添加蓝图引用，蓝图与代码通过接口签名隐式关联
-   （避免两处不同步，选择一种方式后全程统一）
-
-3.5 验证策略（按接口总数自适应）：
-   ≤ 15 接口 → 全量对照（每个接口逐行检查 4 段声明）
-   16-50 接口 → 混合对照（跨模块接口全量，模块内部接口每模块抽 2 个）
-   > 50 接口 → 风险导向（只对照这三类：入口接口、被 ≥ 2 个模块依赖的接口、
-              操作 @EXTERNAL 的接口；其余信任实现）
-
-4. 进度更新 → 采用轻量进度追踪策略：
-   a. 模块完成时，只在 CHECKPOINT.md 中记录进度（不更新 BLUEPRINT.md）
-   b. 同层所有模块 [done] 后，一次性批量更新 BLUEPRINT.md 的 @PROGRESS 和 @MODULE 状态
-   c. 这样 N 个模块只需 ⌈N/层宽⌉ 次蓝图编辑，而非 N 次
-
-5. 确认 → 更新后的蓝图是否破坏依赖
-6. 释放 → 根据「上下文压力感知」信号判断，🟠 或 🔴 时释放已实现代码（只留接口签名）
-```
-
-填充异常 6 种（细分为接口级和依赖级）：
-
-| 异常 | 类型 | 处理 |
-|------|------|------|
-| 模块太大需拆分 | 结构 | 拆为两个，重新排序，记录 @CHANGE |
-| 发现缺少自身接口 | 接口级 | 加接口；该模块重置为 [in progress]；所有直接依赖该接口的下游模块也重置为 [in progress]（级联回退） |
-| 发现缺少依赖 | 依赖级 | 补充依赖标注（含 import 路径）；不重置模块状态；检查 @BUILD_ORDER 是否需要调整；记录 @CHANGE |
-| 发现多余接口 | 接口级 | 检查 @FLOW，确认删除，记录 @CHANGE |
-| 依赖不存在 | 结构 | 移除依赖，可能删除零引用模块 |
-| 接口不匹配 | 接口级 | 确认谁错了，改对应模块 |
-| 蓝图设计问题 | 结构 | 暂停 Phase 2，进入蓝图修正协议，回到 Phase 1 重新划分 |
-
-**接口级 vs 依赖级的区别**：
-- 接口级异常：模块自身的接口需要变更 → 影响下游 → 需要级联回退
-- 依赖级异常：模块发现需要新增对其他模块的依赖 → 不影响下游 → 只需补充标注
-- 判断方法：问"这个变更是否改变了本模块对外暴露的接口签名？" → 是=接口级，否=依赖级
-
-
-## Phase 3：连通验证
+For each [empty] module:
 
 ```
-① 流验证：每条 @FLOW 的模块和接口都存在且状态 [done]
-② 依赖检查：接口签名匹配（A 输出的 shape = B 输入的 shape）+ 调用路径与蓝图标注一致
-③ 边界检查：边界矩阵全 ✓ 或 —
-④ 错误链检查：每条错误链源头→传播→终点完整
-⑤ 空位检查：无 [empty] 残留
-⑥ 变更回溯：逐条 @CHANGE 确认已整合
+1. Locate → confirm all dependencies [done]
+2. Load → current module interfaces + dependency signatures + @CROSSCUT
+   (NO reading dependency source code. NO reading unrelated @FLOW)
+3. Implement → write to blueprint signature, implement pre/post/error/side-effect.
+   Blueprint is single source of truth for behavior, code shouldn't repeat blueprint content.
+   @see reference style (choose per project norms):
+     - Loose norms: write `@see BLUEPRINT.md @MODULE <name>` at module entry top
+     - Strict norms: NO blueprint references in code, implicit association via interface signatures
+   (Avoid desync, pick one style and keep consistent)
+
+3.5 Verification strategy (adapt to interface count):
+   ≤ 15 interfaces → full comparison (every interface line-by-line 4-section check)
+   16-50 interfaces → hybrid comparison (cross-module interfaces full, module-internal interfaces sample 2/module)
+   > 50 interfaces → risk-oriented (only compare entry / multi-dependent / external interfaces; trust rest)
+
+4. Progress update → lightweight tracking strategy:
+   a. On module done, only write to CHECKPOINT.md (NO update BLUEPRINT.md)
+   b. When same layer ALL [done], batch update BLUEPRINT.md @PROGRESS and @MODULE status
+   c. This way N modules = only ⌈N/layer_width⌉ blueprint edits, not N
+
+5. Confirm → check updated blueprint doesn't break dependencies
+6. Release → use "context pressure awareness" signals, 🟠 or 🔴 release completed code (keep only signatures)
+```
+
+6 Fill Exceptions (granularized to interface-level vs dependency-level):
+
+| Exception | Type | Handling |
+|-----------|------|---------|
+| Module too big, needs split | Structural | Split two, reorder, record @CHANGE |
+| Missing own interface discovered | Interface-level | Add interface; this module reset to [in progress]; ALL direct downstream modules also reset [in progress] (cascade rollback) |
+| Missing dependency discovered | Dependency-level | Add dependency annotation (with import path); NO module reset; check if @BUILD_ORDER needs adjustment; record @CHANGE |
+| Extra interface discovered | Interface-level | Check @FLOW, confirm delete, record @CHANGE |
+| Dependency doesn't exist | Structural | Remove dependency, maybe delete zero-reference module |
+| Interface mismatch | Interface-level | Confirm who wrong, fix corresponding module |
+| Blueprint design problem | Structural | Pause Phase 2, enter Blueprint Revision Protocol, go back Phase 1 repartition |
+
+**Interface-level vs Dependency-level distinction**:
+- Interface-level: this module's own external signature changes → affects downstream → cascade rollback needed
+- Dependency-level: this module discovers new need to depend on others → no downstream impact → only add annotation
+- Decision method: ask "does this change this module's externally exposed signature?" → yes=interface-level, no=dependency-level
+
+
+## Phase 3: Connect & Verify
+
+```
+① Flow verification: every @FLOW's modules & interfaces exist and status [done]
+② Dependency check: interface signatures match (A output shape = B input shape) + call path matches blueprint
+③ Boundary check: boundary matrix all ✓ or —
+④ Error chain check: every error chain source→propagation→termination complete
+⑤ Empty slot check: no [empty] left
+⑥ Change review: every @CHANGE confirmed integrated
   
-  简化模式下仅验证 ①⑤⑥：
-    ① 流验证 + ⑤ 空位检查 + ⑥ 变更回溯
-    （跳过 ②③④，因为简化模式无边界矩阵和全量错误链）
+  Simplified mode only verifies ①⑤⑥:
+    ① Flow verification + ⑤ Empty slot check + ⑥ Change review
+    (Skip ②③④ — no boundary matrix or full error chains in simplified)
 
-⑦ 运行时验证（不可跳过）：
-  对每条 @FLOW，至少执行一次对应的命令或调用，确认：
-    - 无 ImportError / ModuleNotFoundError / 路径错误
-    - 无未捕获的运行时异常（允许预期的 ValueError 等业务异常）
-  工具：使用运行命令工具实际执行项目（如 python main.py）。
+⑦ Runtime verification (CANNOT SKIP):
+  For every @FLOW, run corresponding command/call AT LEAST ONCE, verify:
+    - No ImportError / ModuleNotFoundError / path errors
+    - No uncaught runtime exceptions (allow expected business exceptions like ValueError)
+  Tool: use run command tool to actually execute project (like python main.py)
 
-  验证分级（按输出类型）：
-    结构化（API 返回值、JSON、退出码）：
-      → 验证字段名、类型与 @DATA 一致，exit code = 0
-    半结构化（表格、列表、统计面板）：
-      → 验证行/列数、关键数值在合理范围，不含 "Error" 子串
-    非结构化（格式化文本、ANSI 颜色、日志）：
-      → 验证输出非空、不含 traceback、不含 "Traceback" 关键字
+  Verification grading (by output type):
+    Structured (API return, JSON, exit code):
+      → Verify field names/types match @DATA, exit code = 0
+    Semi-structured (tables, lists, dashboards):
+      → Verify row/column counts, key value reasonable ranges, no "Error" substring
+    Unstructured (formatted text, ANSI colors, logs):
+      → Verify output non-empty, no traceback, no "Traceback" keyword
   
-  通过标准：所有 @FLOW 产生输出，且按对应分级无异常。
+  Pass standard: ALL @FLOW produce output, no exceptions per corresponding grade.
 
-⑧ 生成架构摘要（人类可读）：
-  验证通过后，自动从 BLUEPRINT.md 提取关键信息，输出到 .arch/SUMMARY.md：
-    - 一句话概述（"N 模块 / M 接口 / K 条数据流的 <项目类型>"）
-    - 模块依赖图（Mermaid 或 ASCII 树）
-    - 3-5 条最重要的 @FLOW（按涉及模块数排序，取最复杂的）
-    - 所有 @DECISION 的标题和一句话理由
-    - 所有 @EXTERNAL 的名称和故障模式
-  目标：新加入的开发者读 SUMMARY.md（~30 行）即可理解全局架构。
+⑧ Generate architecture summary (human-readable):
+  After verification passes, auto-extract from BLUEPRINT.md to .arch/SUMMARY.md:
+    - One-line overview ("N modules / M interfaces / K data flows <project type>")
+    - Module dependency graph (Mermaid or ASCII tree)
+    - 3-5 most important @FLOW (sorted by module count, take most complex)
+    - All @DECISION titles + one-line rationale
+    - All @EXTERNAL names + failure modes
+  Goal: new dev reads SUMMARY.md (~30 lines) and understands full architecture.
 ```
 
 
-### 蓝图修正协议
+### Blueprint Revision Protocol
 
-当 Phase 2 发现蓝图设计本身有问题（非单个接口缺失）时触发。
+Triggers when Phase 2 discovers blueprint design problem (not just single missing interface):
 
-触发条件（满足任一）：
-  - 同一模块连续 3 个接口的依赖在实际实现中走不通
-  - @BUILD_ORDER 排序后，某模块的传递依赖比预期深 ≥ 2 层
-  - 用户反馈"模块划分不合理"、"依赖方向反了"
-  - 发现 @EXTERNAL 的实际访问权限与契约声明的"可用模块"不一致
+Trigger conditions (any met):
+  - Same module 3 consecutive interface dependencies don't work in implementation
+  - @BUILD_ORDER ordered, module's transitive dependencies ≥ 2 layers deeper than expected
+  - User feedback "modules partitioned wrong", "dependencies backwards"
+  - Discovered @EXTERNAL actual access doesn't match declared "available modules"
 
-修正步骤：
-  1. 暂停 Phase 2，记录当前进度到 CHECKPOINT.md（状态: [restructuring]）
-  2. 在 BLUEPRINT.md 中记录 @RESTRUCTURE 条目
-  3. 重新执行 Phase 1 ④-⑦（从模块划分到用户确认）
-  4. 级联调整：更新 @MODULE、@BUILD_ORDER、@FLOW 中受影响的所有条目
-  5. 重置状态：所有受影响模块 → [empty]，依赖它们的下游模块 → [empty]
-  6. 用户确认新蓝图 → 恢复 Phase 2，从最底层 [empty] 开始
+Revision steps:
+  1. Pause Phase 2, record current progress to CHECKPOINT.md (status: [restructuring])
+  2. Record @RESTRUCTURE entry in BLUEPRINT.md
+  3. Re-execute Phase 1 ④-⑦ (from module partitioning to user confirmation)
+  4. Cascade adjust: update @MODULE, @BUILD_ORDER, @FLOW all affected entries
+  5. Reset status: all affected modules → [empty], downstream dependent modules → [empty]
+  6. User confirms new blueprint → resume Phase 2 from lowest [empty]
 
 
-## 增量开发 / 迭代模式
+## Incremental Development / Iteration Mode
 
-已有项目需要加功能或修 bug 时：
-
-```
-1. 读取 BLUEPRINT.md（已有蓝图直接复用）
-2. 标记受影响模块为 [in progress]
-3. 新增模块标记为 [empty]
-4. 更新 @BUILD_ORDER 和 @FLOW
-5. 对修改和新增的模块执行 Phase 2 填充
-6. 执行 Phase 3 验证（只验证受影响的和相关的 @FLOW）
-```
-
-没有蓝图的现有项目，按以下步骤执行逆向蓝图：
+Adding features or fixing bugs to existing projects:
 
 ```
-第 1 步：列出项目文件 → 递归列出所有源文件，排除测试/配置/生成文件
-第 2 步：逐个模块识别 → 按目录结构判断模块边界
-第 3 步：提取接口签名 → 读入口文件的导出，只收集签名和类型定义
-第 4 步：推断依赖 → 从 import/require/use 语句推断，只收集跨模块引用
-第 5 步：生成 @DATA → 从类型定义中提取跨模块共享的数据结构
-第 6 步：生成 @FLOW → 从入口文件追踪核心调用链
-第 7 步：标注 [done] 和 @UNCLEAR → 不确定的模块标记 @UNCLEAR
-第 8 步：整理为 BLUEPRINT.md → 与新建项目同样的蓝图格式
+1. Read BLUEPRINT.md (reuse existing blueprint directly)
+2. Mark affected modules [in progress]
+3. Mark new modules [empty]
+4. Update @BUILD_ORDER and @FLOW
+5. Execute Phase 2 fill on modified and new modules
+6. Execute Phase 3 verification (only verify affected and related @FLOW)
+```
+
+For existing projects WITHOUT blueprint, execute Reverse Blueprint:
+
+```
+Step 1: List project files → recursively list all source, exclude test/config/generated
+Step 2: Identify module by module → judge module boundaries by directory structure
+Step 3: Extract interface signatures → read entry files' exports, only collect signatures and type definitions
+Step 4: Infer dependencies → from import/require/use statements, only collect cross-module references
+Step 5: Generate @DATA → extract cross-module shared data structures from type definitions
+Step 6: Generate @FLOW → trace core call chains from entry files
+Step 7: Mark [done] and @UNCLEAR → mark uncertain modules @UNCLEAR
+Step 8: Organize to BLUEPRINT.md → same blueprint format as new projects
 ```
